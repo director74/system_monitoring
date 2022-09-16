@@ -1,0 +1,6 @@
+trackAllowed:
+  loadAverage: true
+  cpuLoad: true
+  diskLoad: true
+  topTalkers: true
+  netStats: true

@@ -1,3 +1,41 @@
 syntax = "proto3";
 
 package monitoring_statistic;
+option go_package = "./;proto_stat";
+
+service Agent {
+  rpc GetStats (Timings) returns (stream SystemStats) {}
+}
+
+message Timings {
+  int32 N = 1;
+  int32 M = 2;
+}
+
+message SystemStats {
+  LoadAverage loadAverage = 1;
+  CpuLoad cpuLoad = 2;
+  DiskLoad diskLoad = 3;
+  TopTalkers topTalkers = 4;
+  NetStats netStats = 5;
+}
+
+message LoadAverage {
+
+}
+
+message CpuLoad {
+
+}
+
+message DiskLoad {
+
+}
+
+message TopTalkers {
+
+}
+
+message NetStats {
+
+}
