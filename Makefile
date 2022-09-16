@@ -10,11 +10,11 @@ run: build
 	$(BIN) -config ./configs/measure.yml
 
 generate:
-	rm -rf internal/server/grpc/pb
-	mkdir -p internal/server/grpc/pb
+	rm -rf pkg/grpc/ps
+	mkdir -p pkg/grpc/ps
 
 	protoc \
 		--proto_path=api/ \
 		--go_out=pkg/grpc/ps \
-		--go-grpc_out=internal/server/grpc/pb \
+		--go-grpc_out=pkg/grpc/ps \
 		api/*.proto
