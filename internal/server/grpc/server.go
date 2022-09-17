@@ -2,8 +2,11 @@ package internalgrpc
 
 import (
 	"fmt"
+	"github.com/director74/system_monitoring/internal/cfg"
+	"log"
 	"net"
 
+	"github.com/director74/system_monitoring/pkg/grpc/protostat"
 	"google.golang.org/grpc"
 )
 
@@ -13,8 +16,11 @@ type Server struct {
 	port string
 }
 
-func NewServer() *Server {
-	return &Server{}
+func NewServer(conf cfg.Configurable) *Server {
+	return &Server{
+		host: conf.GetGRPCServerConf().Host,
+		port: conf.GetGRPCServerConf().Port,
+	}
 }
 
 func (s *Server) Start() error {
@@ -23,6 +29,8 @@ func (s *Server) Start() error {
 		return err
 	}
 	s.srv = grpc.NewServer()
+	protostat.RegisterAgentServer(s.srv, NewService())
+	log.Printf("starting grpc server on %s", lsn.Addr().String())
 	return s.srv.Serve(lsn)
 }
 

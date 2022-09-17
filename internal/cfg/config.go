@@ -11,18 +11,25 @@ import (
 type Configurable interface {
 	Parse(path string) error
 	GetAllowedForTracking() TrackAllowedConf
+	GetGRPCServerConf() GRPCServerConf
 }
 
 type Config struct {
-	TrackAllowed TrackAllowedConf
+	TrackAllowed TrackAllowedConf `yaml:"TrackAllowed"`
+	GRPCServer   GRPCServerConf   `yaml:"GRPCServer"`
 }
 
 type TrackAllowedConf struct {
-	LoadAverage bool `yaml:"loadAverage"`
-	CpuLoad     bool `yaml:"  cpuLoad"`
-	DiskLoad    bool `yaml:"diskLoad"`
-	TopTalkers  bool `yaml:"topTalkers"`
-	NetStats    bool `yaml:"netStats"`
+	LoadAverage bool `yaml:"LoadAverage"`
+	CpuLoad     bool `yaml:"CpuLoad"`
+	DiskLoad    bool `yaml:"DiskLoad"`
+	TopTalkers  bool `yaml:"TopTalkers"`
+	NetStats    bool `yaml:"NetStats"`
+}
+
+type GRPCServerConf struct {
+	Host string `yaml:"Host"`
+	Port string `yaml:"Port"`
 }
 
 func NewConfig() Configurable {
@@ -45,4 +52,8 @@ func (c *Config) Parse(path string) error {
 
 func (c *Config) GetAllowedForTracking() TrackAllowedConf {
 	return c.TrackAllowed
+}
+
+func (c *Config) GetGRPCServerConf() GRPCServerConf {
+	return c.GRPCServer
 }

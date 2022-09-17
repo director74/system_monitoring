@@ -1,6 +1,9 @@
-trackAllowed:
-  loadAverage: true
-  cpuLoad: true
-  diskLoad: true
-  topTalkers: true
-  netStats: true
+TrackAllowed:
+  LoadAverage: true
+  CpuLoad: true
+  DiskLoad: true
+  TopTalkers: true
+  NetStats: true
+GRPCServer:
+  Host: localhost
+  Port: 50051

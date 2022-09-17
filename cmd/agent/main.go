@@ -1,10 +1,15 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
+	"log"
+	"os/signal"
+	"syscall"
 
 	"github.com/director74/system_monitoring/internal/cfg"
+	internalgrpc "github.com/director74/system_monitoring/internal/server/grpc"
 )
 
 var (
@@ -26,4 +31,22 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+
+	grpcServer := internalgrpc.NewServer(config)
+
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
+	defer cancel()
+
+	go func() {
+		<-ctx.Done()
+		grpcServer.Stop()
+		log.Println("grpc server stopped")
+	}()
+
+	if err := grpcServer.Start(); err != nil {
+		log.Println("failed to start grpc server: " + err.Error())
+		cancel()
+	}
+
+	<-ctx.Done()
 }

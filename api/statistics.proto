@@ -1,7 +1,7 @@
 syntax = "proto3";
 
-package monitoring_statistic;
-option go_package = "./;proto_stat";
+package protobuf;
+option go_package = "./;protostat";
 
 service Agent {
   rpc GetStats (Timings) returns (stream SystemStats) {}

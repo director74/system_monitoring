@@ -4,7 +4,7 @@
 // - protoc             v3.6.1
 // source: statistics.proto
 
-package proto_stat
+package protostat
 
 import (
 	context "context"
@@ -34,7 +34,7 @@ func NewAgentClient(cc grpc.ClientConnInterface) AgentClient {
 }
 
 func (c *agentClient) GetStats(ctx context.Context, in *Timings, opts ...grpc.CallOption) (Agent_GetStatsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Agent_ServiceDesc.Streams[0], "/monitoring_statistic.Agent/GetStats", opts...)
+	stream, err := c.cc.NewStream(ctx, &Agent_ServiceDesc.Streams[0], "/protobuf.Agent/GetStats", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +118,7 @@ func (x *agentGetStatsServer) Send(m *SystemStats) error {
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Agent_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "monitoring_statistic.Agent",
+	ServiceName: "protobuf.Agent",
 	HandlerType: (*AgentServer)(nil),
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
