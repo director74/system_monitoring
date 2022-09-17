@@ -25,7 +25,9 @@ message LoadAverage {
 }
 
 message CpuLoad {
-
+    int32 userMode = 1;
+    int32 systemMode = 2;
+    int32 idle = 3;
 }
 
 message DiskLoad {
