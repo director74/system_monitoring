@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/director74/system_monitoring/internal/app"
 	"github.com/director74/system_monitoring/internal/cfg"
 	internalgrpc "github.com/director74/system_monitoring/internal/server/grpc"
 )
@@ -36,6 +37,9 @@ func main() {
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
+
+	agent := app.NewApplication(config)
+	agent.BeginCollect(ctx)
 
 	go func() {
 		<-ctx.Done()
