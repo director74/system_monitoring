@@ -1,11 +1,14 @@
 package metrics
 
 import (
-	"context"
+	"bytes"
+	"fmt"
+	"os/exec"
+	"regexp"
+	"strconv"
 	"time"
 )
 
-//$ uptime
 type values struct {
 	minute1  float32
 	minute5  float32
@@ -13,33 +16,52 @@ type values struct {
 }
 
 type LoadAverage struct {
+	Metric
 	storage map[time.Time]values
 }
 
-func (l *LoadAverage) GetIndicators(everyN int, durationM int) interface{} {
-	//exec.Command("uptime")
+func (l *LoadAverage) GetIndicators(everyN int, durationM int) (interface{}, error) {
 	l.storage[time.Now()] = values{}
 
-	return values{}
+	return values{}, nil
 }
 
-func (l *LoadAverage) Measure() {
-	//exec.Command("uptime")
-	l.storage[time.Now()] = values{}
-}
+func (l *LoadAverage) Measure() error {
+	var out bytes.Buffer
+	cmd := exec.Command("bash", "-c", "uptime")
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("cant measure load average: %w", err)
+	}
 
-func (l *LoadAverage) Run(ctx context.Context) {
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				time.Sleep(1 * time.Second)
-				l.Measure()
-			}
+	resultVals := values{}
+
+	re, err := regexp.Compile(`load average: (?P<minute1>\d+\.\d+)+,\s*(?P<minute5>\d+\.\d+)+,\s*(?P<minute15>\d+\.\d+)+`)
+	if err != nil {
+		return fmt.Errorf("regexp problem in load average: %w", err)
+	}
+
+	res := re.FindStringSubmatch(out.String())
+	for kk, vv := range re.SubexpNames() {
+		value, err := strconv.ParseFloat(res[kk], 32)
+		if err != nil {
+			return fmt.Errorf("cant convert value in load average: %w", err)
 		}
-	}()
+
+		if vv == "minute1" {
+			resultVals.minute1 = float32(value)
+		}
+		if vv == "minute5" {
+			resultVals.minute5 = float32(value)
+		}
+		if vv == "minute15" {
+			resultVals.minute15 = float32(value)
+		}
+	}
+	l.storage[time.Now()] = resultVals
+
+	return nil
 }
 
 func (l *LoadAverage) ClearOldStat(hoursAgo int) {

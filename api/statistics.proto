@@ -21,7 +21,9 @@ message SystemStats {
 }
 
 message LoadAverage {
-
+  float minute1 = 1;
+  float minute5 = 2;
+  float minute15 = 3;
 }
 
 message CpuLoad {
