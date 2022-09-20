@@ -16,10 +16,13 @@ type Server struct {
 	port string
 }
 
-func NewServer(conf cfg.Configurable) *Server {
+func NewServer(port string, conf cfg.Configurable) *Server {
+	if port == "" {
+		port = conf.GetGRPCServerConf().Port
+	}
 	return &Server{
 		host: conf.GetGRPCServerConf().Host,
-		port: conf.GetGRPCServerConf().Port,
+		port: port,
 	}
 }
 

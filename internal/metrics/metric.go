@@ -9,7 +9,7 @@ import (
 type Measurable interface {
 	Run(context.Context, measureFunc)
 	Measure() error
-	ClearOldStat(hoursAgo int)
+	ClearOldStat(int)
 	GetIndicators(everyN int, durationM int) (interface{}, error)
 }
 

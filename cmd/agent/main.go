@@ -33,7 +33,7 @@ func main() {
 		return
 	}
 
-	grpcServer := internalgrpc.NewServer(config)
+	grpcServer := internalgrpc.NewServer(port, config)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
@@ -41,7 +41,7 @@ func main() {
 	agent := app.NewApplication(config)
 	agent.BeginCollect(ctx)
 
-	go agent.ClearOldData(ctx, config.GetClearPeriodConf().Hours)
+	go agent.ClearOldData(ctx, config.GetClearPeriodConf().Minutes)
 
 	go func() {
 		<-ctx.Done()

@@ -68,7 +68,7 @@ func (l *LoadAverage) Measure() error {
 	return nil
 }
 
-func (l *LoadAverage) ClearOldStat(hoursAgo int) {
+func (l *LoadAverage) ClearOldStat(minutesAgo int) {
 
 }
 

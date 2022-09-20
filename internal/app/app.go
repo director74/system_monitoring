@@ -46,7 +46,7 @@ func (a *App) BeginCollect(ctx context.Context) {
 	}
 }
 
-func (a *App) ClearOldData(ctx context.Context, hoursAgo int) {
+func (a *App) ClearOldData(ctx context.Context, minutesAgo int) {
 	ticker := time.NewTicker(10 * time.Minute)
 	for {
 		select {
@@ -63,7 +63,7 @@ func (a *App) ClearOldData(ctx context.Context, hoursAgo int) {
 			return
 		case <-ticker.C:
 			for _, parameter := range a.metrics {
-				parameter.ClearOldStat(hoursAgo)
+				parameter.ClearOldStat(minutesAgo)
 			}
 		}
 	}

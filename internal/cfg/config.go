@@ -35,7 +35,7 @@ type GRPCServerConf struct {
 }
 
 type ClearPeriodConf struct {
-	Hours int `yaml:"Hours"`
+	Minutes int `yaml:"Minutes"`
 }
 
 func NewConfig() Configurable {
