@@ -9,21 +9,21 @@ import (
 	"time"
 )
 
-type values struct {
-	minute1  float32
-	minute5  float32
-	minute15 float32
+type LoadAverageResult struct {
+	Minute1  float32
+	Minute5  float32
+	Minute15 float32
 }
 
 type LoadAverage struct {
 	*Metric
-	storage map[time.Time]values
+	storage map[time.Time]LoadAverageResult
 }
 
-func (l *LoadAverage) GetIndicators(everyN int, durationM int) (interface{}, error) {
-	l.storage[time.Now()] = values{}
+func (l *LoadAverage) GetAverageByPeriod(beginTime time.Time, durationM int32) (interface{}, error) {
+	l.storage[time.Now()] = LoadAverageResult{}
 
-	return values{}, nil
+	return LoadAverageResult{Minute1: 0.1, Minute5: 0.5, Minute15: 1.2}, nil
 }
 
 func (l *LoadAverage) Measure() error {
@@ -37,7 +37,7 @@ func (l *LoadAverage) Measure() error {
 		return fmt.Errorf("cant measure load average: %w", err)
 	}
 
-	resultVals := values{}
+	resultVals := LoadAverageResult{}
 
 	re, err := regexp.Compile(`load average: (?P<minute1>\d+\.\d+)+,\s*(?P<minute5>\d+\.\d+)+,\s*(?P<minute15>\d+\.\d+)+`)
 	if err != nil {
@@ -54,13 +54,13 @@ func (l *LoadAverage) Measure() error {
 		}
 
 		if vv == "minute1" {
-			resultVals.minute1 = float32(value)
+			resultVals.Minute1 = float32(value)
 		}
 		if vv == "minute5" {
-			resultVals.minute5 = float32(value)
+			resultVals.Minute5 = float32(value)
 		}
 		if vv == "minute15" {
-			resultVals.minute15 = float32(value)
+			resultVals.Minute15 = float32(value)
 		}
 	}
 	l.storage[time.Now()] = resultVals
@@ -74,6 +74,6 @@ func (l *LoadAverage) ClearOldStat(minutesAgo int) {
 
 func NewLoadAverage() Measurable {
 	return &LoadAverage{
-		storage: make(map[time.Time]values),
+		storage: make(map[time.Time]LoadAverageResult),
 	}
 }

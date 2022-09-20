@@ -5,6 +5,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/director74/system_monitoring/internal/app"
+	"github.com/director74/system_monitoring/internal/metrics"
 	"github.com/director74/system_monitoring/pkg/grpc/protostat"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -12,12 +14,14 @@ import (
 
 type Service struct {
 	protostat.UnimplementedAgentServer
+	agent         app.Application
 	activeClients int32
 }
 
-func NewService() *Service {
+func NewService(agent app.Application) *Service {
 	return &Service{
 		activeClients: 0,
+		agent:         agent,
 	}
 }
 

@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"time"
 
@@ -12,6 +13,8 @@ import (
 type Application interface {
 	BeginCollect(context.Context)
 	ClearOldData(context.Context, int)
+	GetConfig() cfg.Configurable
+	GetMetricStat(name string) (metrics.Measurable, error)
 }
 
 type App struct {
@@ -67,4 +70,16 @@ func (a *App) ClearOldData(ctx context.Context, minutesAgo int) {
 			}
 		}
 	}
+}
+
+func (a *App) GetConfig() cfg.Configurable {
+	return a.conf
+}
+
+func (a *App) GetMetricStat(name string) (metrics.Measurable, error) {
+	metric, ok := a.metrics[name]
+	if !ok {
+		return nil, fmt.Errorf("metric %s not found", name)
+	}
+	return metric, nil
 }
