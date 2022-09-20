@@ -12,11 +12,13 @@ type Configurable interface {
 	Parse(path string) error
 	GetAllowedForTracking() TrackAllowedConf
 	GetGRPCServerConf() GRPCServerConf
+	GetClearPeriodConf() ClearPeriodConf
 }
 
 type Config struct {
 	TrackAllowed TrackAllowedConf `yaml:"TrackAllowed"`
 	GRPCServer   GRPCServerConf   `yaml:"GRPCServer"`
+	ClearPeriod  ClearPeriodConf  `yaml:"ClearPeriod"`
 }
 
 type TrackAllowedConf struct {
@@ -30,6 +32,10 @@ type TrackAllowedConf struct {
 type GRPCServerConf struct {
 	Host string `yaml:"Host"`
 	Port string `yaml:"Port"`
+}
+
+type ClearPeriodConf struct {
+	Hours int `yaml:"Hours"`
 }
 
 func NewConfig() Configurable {
@@ -56,4 +62,8 @@ func (c *Config) GetAllowedForTracking() TrackAllowedConf {
 
 func (c *Config) GetGRPCServerConf() GRPCServerConf {
 	return c.GRPCServer
+}
+
+func (c *Config) GetClearPeriodConf() ClearPeriodConf {
+	return c.ClearPeriod
 }

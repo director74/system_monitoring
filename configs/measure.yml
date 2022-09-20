@@ -7,3 +7,5 @@ TrackAllowed:
 GRPCServer:
   Host: localhost
   Port: 50051
+ClearPeriod:
+  Hours: 1

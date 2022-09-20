@@ -41,6 +41,8 @@ func main() {
 	agent := app.NewApplication(config)
 	agent.BeginCollect(ctx)
 
+	go agent.ClearOldData(ctx, config.GetClearPeriodConf().Hours)
+
 	go func() {
 		<-ctx.Done()
 		grpcServer.Stop()

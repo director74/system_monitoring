@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"reflect"
+	"time"
 
 	"github.com/director74/system_monitoring/internal/cfg"
 	"github.com/director74/system_monitoring/internal/metrics"
@@ -10,7 +11,7 @@ import (
 
 type Application interface {
 	BeginCollect(context.Context)
-	ClearOldData()
+	ClearOldData(context.Context, int)
 }
 
 type App struct {
@@ -20,7 +21,8 @@ type App struct {
 
 func NewApplication(conf cfg.Configurable) Application {
 	return &App{
-		conf: conf,
+		conf:    conf,
+		metrics: make(map[string]metrics.Measurable),
 	}
 }
 
@@ -38,10 +40,31 @@ func (a *App) BeginCollect(ctx context.Context) {
 			}
 		}
 	}
+
+	for _, param := range a.metrics {
+		param.Run(ctx, param.Measure)
+	}
 }
 
-func (a *App) ClearOldData() {
-	for _, parameter := range a.metrics {
-		parameter.ClearOldStat(2)
+func (a *App) ClearOldData(ctx context.Context, hoursAgo int) {
+	ticker := time.NewTicker(10 * time.Minute)
+	for {
+		select {
+		case <-ctx.Done():
+			ticker.Stop()
+			return
+		default:
+
+		}
+
+		select {
+		case <-ctx.Done():
+			ticker.Stop()
+			return
+		case <-ticker.C:
+			for _, parameter := range a.metrics {
+				parameter.ClearOldStat(hoursAgo)
+			}
+		}
 	}
 }

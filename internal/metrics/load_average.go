@@ -16,7 +16,7 @@ type values struct {
 }
 
 type LoadAverage struct {
-	Metric
+	*Metric
 	storage map[time.Time]values
 }
 
@@ -27,7 +27,9 @@ func (l *LoadAverage) GetIndicators(everyN int, durationM int) (interface{}, err
 }
 
 func (l *LoadAverage) Measure() error {
+	var value float64
 	var out bytes.Buffer
+
 	cmd := exec.Command("bash", "-c", "uptime")
 	cmd.Stdout = &out
 	err := cmd.Run()
@@ -44,9 +46,11 @@ func (l *LoadAverage) Measure() error {
 
 	res := re.FindStringSubmatch(out.String())
 	for kk, vv := range re.SubexpNames() {
-		value, err := strconv.ParseFloat(res[kk], 32)
-		if err != nil {
-			return fmt.Errorf("cant convert value in load average: %w", err)
+		if vv != "" {
+			value, err = strconv.ParseFloat(res[kk], 32)
+			if err != nil {
+				return fmt.Errorf("cant convert value in load average: %w", err)
+			}
 		}
 
 		if vv == "minute1" {
@@ -69,5 +73,7 @@ func (l *LoadAverage) ClearOldStat(hoursAgo int) {
 }
 
 func NewLoadAverage() Measurable {
-	return &LoadAverage{}
+	return &LoadAverage{
+		storage: make(map[time.Time]values),
+	}
 }
