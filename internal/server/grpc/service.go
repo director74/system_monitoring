@@ -1,7 +1,6 @@
 package internalgrpc
 
 import (
-	"fmt"
 	"log"
 	"sync/atomic"
 	"time"
@@ -26,7 +25,7 @@ func NewService(agent app.Application) *Service {
 	}
 }
 
-func (s *Service) GetStats(timings *protostat.Timings, statStream protostat.Agent_GetStatsServer) error {
+func (s *Service) GetStats(timings *protostat.SystemStatsRequest, statStream protostat.Agent_GetStatsServer) error {
 	atomic.AddInt32(&s.activeClients, 1)
 	log.Printf("active clients: %d", s.activeClients)
 	beginTime := time.Now().Unix()
@@ -40,7 +39,7 @@ func (s *Service) GetStats(timings *protostat.Timings, statStream protostat.Agen
 			time.Sleep(time.Duration(timings.GetN()) * time.Second)
 
 			currentTime := time.Now().Unix()
-			if (beginTime + timings.GetM()) < currentTime {
+			if (beginTime + timings.GetM()) > currentTime {
 				break
 			}
 
@@ -59,29 +58,44 @@ func (s *Service) GetStats(timings *protostat.Timings, statStream protostat.Agen
 	}
 }
 
-func (s *Service) buildResponse(currentTime int64, periodSeconds int64) (*protostat.SystemStats, error) {
+func (s *Service) buildResponse(currentTime int64, periodSeconds int64) (*protostat.SystemStatsResponse, error) {
+	var needProcess int32
 	from := currentTime - periodSeconds
-	resultStat := &protostat.SystemStats{}
+	resultStat := &protostat.SystemStatsResponse{}
 
-	names := s.agent.GetAllMetricNames()
-	for _, name := range names {
-		switch name {
-		case "LoadAverage":
-			la, err := s.agent.GetMetricStat(name)
-			if err != nil {
-				return nil, err
+	statsCh := make(chan metrics.MeasureResult)
+	defer close(statsCh)
+
+	allMetrics := *s.agent.GetAllMetrics()
+	for _, metric := range allMetrics {
+		atomic.AddInt32(&needProcess, 1)
+		go func() {
+			metric.GetAverageByPeriod(statsCh, from, currentTime)
+		}()
+	}
+
+	for {
+		select {
+		case measuredItem := <-statsCh:
+			for name, values := range measuredItem {
+				switch name {
+				case "LoadAverage":
+					typedValues, success := values.(metrics.LoadAverageResult)
+					if !success {
+						log.Println("cast LoadAverageResult problem")
+					} else {
+						resultStat.LoadAverage = &protostat.LoadAverage{Minute1: typedValues.Minute1, Minute5: typedValues.Minute5, Minute15: typedValues.Minute15}
+					}
+				}
 			}
-			laValues, err := la.GetAverageByPeriod(from, currentTime)
-			if err != nil {
-				return nil, err
+			atomic.AddInt32(&needProcess, -1)
+		default:
+			if needProcess == 0 {
+				goto L
 			}
-			typedValues, success := laValues.(metrics.LoadAverageResult)
-			if !success {
-				return nil, fmt.Errorf("cast LoadAverageResult problem")
-			}
-			resultStat.LoadAverage = &protostat.LoadAverage{Minute1: typedValues.Minute1, Minute5: typedValues.Minute5, Minute15: typedValues.Minute15}
 		}
 	}
 
+L:
 	return resultStat, nil
 }

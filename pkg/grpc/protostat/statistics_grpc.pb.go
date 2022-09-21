@@ -22,7 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AgentClient interface {
-	GetStats(ctx context.Context, in *Timings, opts ...grpc.CallOption) (Agent_GetStatsClient, error)
+	GetStats(ctx context.Context, in *SystemStatsRequest, opts ...grpc.CallOption) (Agent_GetStatsClient, error)
 }
 
 type agentClient struct {
@@ -33,7 +33,7 @@ func NewAgentClient(cc grpc.ClientConnInterface) AgentClient {
 	return &agentClient{cc}
 }
 
-func (c *agentClient) GetStats(ctx context.Context, in *Timings, opts ...grpc.CallOption) (Agent_GetStatsClient, error) {
+func (c *agentClient) GetStats(ctx context.Context, in *SystemStatsRequest, opts ...grpc.CallOption) (Agent_GetStatsClient, error) {
 	stream, err := c.cc.NewStream(ctx, &Agent_ServiceDesc.Streams[0], "/protobuf.Agent/GetStats", opts...)
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func (c *agentClient) GetStats(ctx context.Context, in *Timings, opts ...grpc.Ca
 }
 
 type Agent_GetStatsClient interface {
-	Recv() (*SystemStats, error)
+	Recv() (*SystemStatsResponse, error)
 	grpc.ClientStream
 }
 
@@ -57,8 +57,8 @@ type agentGetStatsClient struct {
 	grpc.ClientStream
 }
 
-func (x *agentGetStatsClient) Recv() (*SystemStats, error) {
-	m := new(SystemStats)
+func (x *agentGetStatsClient) Recv() (*SystemStatsResponse, error) {
+	m := new(SystemStatsResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (x *agentGetStatsClient) Recv() (*SystemStats, error) {
 // All implementations must embed UnimplementedAgentServer
 // for forward compatibility
 type AgentServer interface {
-	GetStats(*Timings, Agent_GetStatsServer) error
+	GetStats(*SystemStatsRequest, Agent_GetStatsServer) error
 	mustEmbedUnimplementedAgentServer()
 }
 
@@ -77,7 +77,7 @@ type AgentServer interface {
 type UnimplementedAgentServer struct {
 }
 
-func (UnimplementedAgentServer) GetStats(*Timings, Agent_GetStatsServer) error {
+func (UnimplementedAgentServer) GetStats(*SystemStatsRequest, Agent_GetStatsServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetStats not implemented")
 }
 func (UnimplementedAgentServer) mustEmbedUnimplementedAgentServer() {}
@@ -94,7 +94,7 @@ func RegisterAgentServer(s grpc.ServiceRegistrar, srv AgentServer) {
 }
 
 func _Agent_GetStats_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(Timings)
+	m := new(SystemStatsRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func _Agent_GetStats_Handler(srv interface{}, stream grpc.ServerStream) error {
 }
 
 type Agent_GetStatsServer interface {
-	Send(*SystemStats) error
+	Send(*SystemStatsResponse) error
 	grpc.ServerStream
 }
 
@@ -110,7 +110,7 @@ type agentGetStatsServer struct {
 	grpc.ServerStream
 }
 
-func (x *agentGetStatsServer) Send(m *SystemStats) error {
+func (x *agentGetStatsServer) Send(m *SystemStatsResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 

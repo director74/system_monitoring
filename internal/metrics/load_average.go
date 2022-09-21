@@ -22,9 +22,10 @@ type LoadAverage struct {
 	storage map[int64]LoadAverageResult
 }
 
-func (l *LoadAverage) GetAverageByPeriod(beginTimeUnix int64, endTimeUnix int64) (interface{}, error) {
+func (l *LoadAverage) GetAverageByPeriod(measures chan MeasureResult, beginTimeUnix int64, endTimeUnix int64) {
 	var cntr float32
 
+	result := make(MeasureResult)
 	calculated := LoadAverageResult{}
 	for timeIndex, mark := range l.storage {
 		if timeIndex >= beginTimeUnix && timeIndex <= endTimeUnix {
@@ -35,11 +36,10 @@ func (l *LoadAverage) GetAverageByPeriod(beginTimeUnix int64, endTimeUnix int64)
 		}
 	}
 
-	if cntr == 0 {
-		return nil, fmt.Errorf("load average measurements not found")
+	if cntr > 0 {
+		result["LoadAverage"] = LoadAverageResult{Minute1: calculated.Minute1 / cntr, Minute5: calculated.Minute5, Minute15: calculated.Minute15}
 	}
-
-	return LoadAverageResult{Minute1: calculated.Minute1 / cntr, Minute5: calculated.Minute5, Minute15: calculated.Minute15}, nil
+	measures <- result
 }
 
 func (l *LoadAverage) Measure() error {

@@ -16,11 +16,14 @@ type Application interface {
 	GetConfig() cfg.Configurable
 	GetMetricStat(name string) (metrics.Measurable, error)
 	GetAllMetricNames() []string
+	GetAllMetrics() *metricRegister
 }
+
+type metricRegister map[string]metrics.Measurable
 
 type App struct {
 	conf    cfg.Configurable
-	metrics map[string]metrics.Measurable
+	metrics metricRegister
 }
 
 func NewApplication(conf cfg.Configurable) Application {
@@ -92,4 +95,8 @@ func (a *App) GetAllMetricNames() []string {
 	}
 
 	return result
+}
+
+func (a *App) GetAllMetrics() *metricRegister {
+	return &a.metrics
 }

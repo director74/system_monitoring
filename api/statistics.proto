@@ -4,15 +4,15 @@ package protobuf;
 option go_package = "./;protostat";
 
 service Agent {
-  rpc GetStats (Timings) returns (stream SystemStats) {}
+  rpc GetStats (SystemStatsRequest) returns (stream SystemStatsResponse) {}
 }
 
-message Timings {
+message SystemStatsRequest {
   int64 N = 1;
   int64 M = 2;
 }
 
-message SystemStats {
+message SystemStatsResponse {
   LoadAverage loadAverage = 1;
   CpuLoad cpuLoad = 2;
   DiskLoad diskLoad = 3;

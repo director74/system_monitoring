@@ -10,10 +10,11 @@ type Measurable interface {
 	Run(context.Context, measureFunc)
 	Measure() error
 	ClearOldStat(int)
-	GetAverageByPeriod(beginTimeUnix int64, endTimeUnix int64) (interface{}, error)
+	GetAverageByPeriod(measures chan MeasureResult, beginTimeUnix int64, endTimeUnix int64)
 }
 
 type measureFunc func() error
+type MeasureResult map[string]interface{}
 
 type Metric struct {
 }
