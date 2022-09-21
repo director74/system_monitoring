@@ -10,7 +10,7 @@ type Measurable interface {
 	Run(context.Context, measureFunc)
 	Measure() error
 	ClearOldStat(int)
-	GetAverageByPeriod(beginTime time.Time, durationM int32) (interface{}, error)
+	GetAverageByPeriod(beginTimeUnix int64, endTimeUnix int64) (interface{}, error)
 }
 
 type measureFunc func() error

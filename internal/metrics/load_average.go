@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -17,13 +18,28 @@ type LoadAverageResult struct {
 
 type LoadAverage struct {
 	*Metric
-	storage map[time.Time]LoadAverageResult
+	mu      sync.RWMutex
+	storage map[int64]LoadAverageResult
 }
 
-func (l *LoadAverage) GetAverageByPeriod(beginTime time.Time, durationM int32) (interface{}, error) {
-	l.storage[time.Now()] = LoadAverageResult{}
+func (l *LoadAverage) GetAverageByPeriod(beginTimeUnix int64, endTimeUnix int64) (interface{}, error) {
+	var cntr float32
 
-	return LoadAverageResult{Minute1: 0.1, Minute5: 0.5, Minute15: 1.2}, nil
+	calculated := LoadAverageResult{}
+	for timeIndex, mark := range l.storage {
+		if timeIndex >= beginTimeUnix && timeIndex <= endTimeUnix {
+			cntr++
+			calculated.Minute1 += mark.Minute1
+			calculated.Minute5 += mark.Minute5
+			calculated.Minute15 += mark.Minute15
+		}
+	}
+
+	if cntr == 0 {
+		return nil, fmt.Errorf("load average measurements not found")
+	}
+
+	return LoadAverageResult{Minute1: calculated.Minute1 / cntr, Minute5: calculated.Minute5, Minute15: calculated.Minute15}, nil
 }
 
 func (l *LoadAverage) Measure() error {
@@ -63,17 +79,19 @@ func (l *LoadAverage) Measure() error {
 			resultVals.Minute15 = float32(value)
 		}
 	}
-	l.storage[time.Now()] = resultVals
+	l.mu.Lock()
+	l.storage[time.Now().Unix()] = resultVals
+	l.mu.Unlock()
 
 	return nil
 }
 
-func (l *LoadAverage) ClearOldStat(minutesAgo int) {
+func (l *LoadAverage) ClearOldStat(olderMinutes int) {
 
 }
 
 func NewLoadAverage() Measurable {
 	return &LoadAverage{
-		storage: make(map[time.Time]LoadAverageResult),
+		storage: make(map[int64]LoadAverageResult),
 	}
 }

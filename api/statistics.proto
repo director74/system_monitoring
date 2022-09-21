@@ -8,8 +8,8 @@ service Agent {
 }
 
 message Timings {
-  int32 N = 1;
-  int32 M = 2;
+  int64 N = 1;
+  int64 M = 2;
 }
 
 message SystemStats {

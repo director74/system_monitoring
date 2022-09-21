@@ -15,6 +15,7 @@ type Application interface {
 	ClearOldData(context.Context, int)
 	GetConfig() cfg.Configurable
 	GetMetricStat(name string) (metrics.Measurable, error)
+	GetAllMetricNames() []string
 }
 
 type App struct {
@@ -49,7 +50,7 @@ func (a *App) BeginCollect(ctx context.Context) {
 	}
 }
 
-func (a *App) ClearOldData(ctx context.Context, minutesAgo int) {
+func (a *App) ClearOldData(ctx context.Context, olderMinutes int) {
 	ticker := time.NewTicker(10 * time.Minute)
 	for {
 		select {
@@ -66,7 +67,7 @@ func (a *App) ClearOldData(ctx context.Context, minutesAgo int) {
 			return
 		case <-ticker.C:
 			for _, parameter := range a.metrics {
-				parameter.ClearOldStat(minutesAgo)
+				parameter.ClearOldStat(olderMinutes)
 			}
 		}
 	}
@@ -82,4 +83,13 @@ func (a *App) GetMetricStat(name string) (metrics.Measurable, error) {
 		return nil, fmt.Errorf("metric %s not found", name)
 	}
 	return metric, nil
+}
+
+func (a *App) GetAllMetricNames() []string {
+	result := make([]string, len(a.metrics))
+	for name, _ := range a.metrics {
+		result = append(result, name)
+	}
+
+	return result
 }
