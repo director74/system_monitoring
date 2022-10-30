@@ -1,0 +1,11 @@
+TrackAllowed:
+  LoadAverage: true
+  CpuLoad: false
+  DiskLoad: false
+  TopTalkers: false
+  NetStats: false
+GRPCServer:
+  Host: localhost
+  Port: 50051
+ClearPeriod:
+  Minutes: 10
